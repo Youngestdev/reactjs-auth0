@@ -1,21 +1,52 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
+import React from 'react';
+import {withRouter} from 'react-router';
+import {Route} from 'react-router-dom';
+import Callback from './Callback/Callback';
 import './App.css';
 
-class App extends Component {
-  render() {
+function HomePage(props) {
+  const {authenticated} = props;
+
+  const logout = () => {
+    props.auth.logout();
+    props.history.push('/');
+  };
+
+  if (authenticated) {
+    const {name} = props.auth.getProfile();
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+      <div>
+        <h1>Howdy! Glad to see you back, {name}.</h1>
+        <button onClick={logout}>Log out</button>
       </div>
     );
   }
+
+  return (
+    <div>
+      <h1>I don't know you. Please, log in.</h1>
+      <button onClick={props.auth.login}>Log in</button>
+    </div>
+  );
 }
 
-export default App;
+function App(props) {
+  const authenticated = props.auth.isAuthenticated();
+
+  return (
+    <div className="App">
+      <Route exact path='/callback' render={() => (
+        <Callback auth={props.auth}/>
+      )}/>
+      <Route exact path='/' render={() => (
+        <HomePage
+          authenticated={authenticated}
+          auth={props.auth}
+          history={props.history}
+        />)
+      }/>
+    </div>
+  );
+}
+
+export default withRouter(App);
